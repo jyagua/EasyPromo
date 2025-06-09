@@ -1,5 +1,5 @@
 # EasyPromo
-Aplicativo para registrar promoções na Amazon e AliExpress, ainda no Alpha
+Aplicativo para registrar promoções na Amazon, ainda no Alpha
 
 # Funcionalidades Principais:
   Favoritar e adicionar produtos ao carrinho
