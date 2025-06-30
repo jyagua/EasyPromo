@@ -1,8 +1,10 @@
 package com.ufc.easypromo.models
 
+import android.content.Context
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import com.ufc.easypromo.R
+import com.ufc.easypromo.util.NotificationHelper
 
 data class Product(
     val id: Int,
@@ -10,11 +12,31 @@ data class Product(
     val description: String,
     val price: Double,
     val category: String,
-    val store: String, // Filtro para dizer de qual loja é o produto e separar de acordo
+    val store: String,
     val isFavorite: MutableState<Boolean> = mutableStateOf(false),
     val isInCart: MutableState<Boolean> = mutableStateOf(false),
-    val imageRes: Int
+    val imageRes: Int,
+    var lastNotifiedPrice: MutableState<Double?> = mutableStateOf(null) // NEW
 )
+
+
+suspend fun checkPriceDropsAndNotify(
+    context: Context,
+    products: List<Product>,
+    notificationsEnabled: Boolean
+) {
+    if (!notificationsEnabled) return
+
+    products.filter { it.isFavorite.value }.forEach { product ->
+        val lastPrice = product.lastNotifiedPrice.value
+        if (lastPrice != null && product.price < lastPrice) {
+            NotificationHelper.sendPriceDropNotification(context, product)
+            product.lastNotifiedPrice.value = product.price
+        } else if (lastPrice == null) {
+            product.lastNotifiedPrice.value = product.price
+        }
+    }
+}
 
 val productList = listOf(
     Product(
