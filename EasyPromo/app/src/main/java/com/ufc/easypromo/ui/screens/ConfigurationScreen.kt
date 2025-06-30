@@ -1,5 +1,6 @@
 package com.ufc.easypromo.ui.screens
 
+import android.app.TimePickerDialog
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -20,18 +21,21 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.ufc.easypromo.data.PreferencesDataStore
 import com.ufc.easypromo.util.NotificationHelper
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,6 +48,8 @@ fun ConfigurationScreen(
     val preferencesDataStore = remember { PreferencesDataStore(context) }
     val scope = rememberCoroutineScope()
     val priceDropEnabled by preferencesDataStore.priceDropEnabled.collectAsState(initial = false)
+
+    var showTimePicker by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -99,19 +105,47 @@ fun ConfigurationScreen(
                 Text("Limpar Favoritos")
             }
             Spacer(modifier = Modifier.height(32.dp))
-            // DEBUG ==================
+
             Button(
-                onClick = {
-                    scope.launch {
-                        delay(5000)
-                        NotificationHelper.sendTestNotification(context)
-                    }
-                },
+                onClick = { showTimePicker = true },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Testar Notificação (10s)")
+                Text("Agendar Notificação (Escolher Horário)")
             }
-            // DEBUG ==================
+
+            if (showTimePicker) {
+                val contextDialog = LocalContext.current
+                val now = Calendar.getInstance()
+                // Use LaunchedEffect to show the dialog only once per state change
+                LaunchedEffect(showTimePicker) {
+                    TimePickerDialog(
+                        contextDialog,
+                        { _, hour: Int, minute: Int ->
+                            showTimePicker = false
+                            val scheduled = Calendar.getInstance().apply {
+                                set(Calendar.HOUR_OF_DAY, hour)
+                                set(Calendar.MINUTE, minute)
+                                set(Calendar.SECOND, 0)
+                                set(Calendar.MILLISECOND, 0)
+                                if (before(Calendar.getInstance())) {
+                                    add(Calendar.DAY_OF_MONTH, 1)
+                                }
+                            }
+                            NotificationHelper.scheduleCustomNotification(
+                                context = contextDialog,
+                                title = "Notificação Agendada",
+                                message = "Esta notificação foi agendada para ${"%02d".format(hour)}:${"%02d".format(minute)}.",
+                                triggerAtMillis = scheduled.timeInMillis
+                            )
+                        },
+                        now.get(Calendar.HOUR_OF_DAY),
+                        now.get(Calendar.MINUTE),
+                        true
+                    ).apply {
+                        setOnCancelListener { showTimePicker = false }
+                    }.show()
+                }
+            }
         }
     }
 }

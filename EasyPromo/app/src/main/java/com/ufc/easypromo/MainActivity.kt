@@ -10,7 +10,7 @@ import androidx.activity.viewModels
 import androidx.compose.runtime.collectAsState
 import com.ufc.easypromo.ui.navigation.AppNavHost
 import com.ufc.easypromo.ui.theme.EasyPromoTheme
-import com.ufc.easypromo.util.AlarmHelper
+import com.ufc.easypromo.util.NotificationHelper
 import com.ufc.easypromo.viewmodel.MainViewModel
 
 class MainActivity : ComponentActivity() {
@@ -28,7 +28,7 @@ class MainActivity : ComponentActivity() {
         }
 
         // Schedule repeating alarm for price drop notifications
-        AlarmHelper.schedulePriceDropAlarm(this)
+        NotificationHelper.schedulePriceDropAlarm(this)
 
         // Check price drops on launch
         mainViewModel.checkPriceDropsAndNotify()
