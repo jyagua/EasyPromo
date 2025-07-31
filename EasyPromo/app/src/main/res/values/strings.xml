@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">EasyPromo</string>
+
+    <string name="default_web_client_id" translatable="false">754836868129-ijvutio21l1drqlfi4db41jic65l437b.apps.googleusercontent.com</string>
 </resources>

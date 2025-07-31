@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Divider
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -19,10 +18,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.ufc.easypromo.models.Product
-import com.ufc.easypromo.models.productList
 
 @Composable
 fun DrawerContent(
+    favoriteProducts: List<Product>,
     onProductClick: (Product) -> Unit,
     onFavouritesClick: () -> Unit,
     onConfigClick: () -> Unit,
@@ -41,10 +40,9 @@ fun DrawerContent(
                 .padding(16.dp)
         ) {
             Text(
-                text = "Menu",
+                text = "EasyPromo",
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(bottom = 16.dp)
-                    .padding(vertical = 16.dp)
             )
             HorizontalDivider()
 
@@ -59,11 +57,12 @@ fun DrawerContent(
                     .padding(vertical = 8.dp)
             )
 
-            val favourites = productList.filter { it.isFavorite.value }
-            favourites.forEach { product ->
+            // Display a few favorite products as quick links
+            favoriteProducts.take(3).forEach { product ->
                 Text(
                     text = product.name,
                     style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 1,
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable { onProductClick(product) }
@@ -82,6 +81,8 @@ fun DrawerContent(
                     .padding(vertical = 8.dp)
             )
 
+            Spacer(modifier = Modifier.height(16.dp))
+
             Text(
                 text = "Ajuda",
                 style = MaterialTheme.typography.titleMedium,
@@ -93,7 +94,7 @@ fun DrawerContent(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            Divider()
+            HorizontalDivider()
             Text(
                 text = "Versão 1.0.0",
                 style = MaterialTheme.typography.bodySmall,

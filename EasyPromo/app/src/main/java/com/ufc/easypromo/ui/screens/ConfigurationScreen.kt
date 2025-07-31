@@ -1,5 +1,6 @@
 package com.ufc.easypromo.ui.screens
 
+import android.annotation.SuppressLint
 import android.app.TimePickerDialog
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -37,6 +38,7 @@ import com.ufc.easypromo.util.NotificationHelper
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
+@SuppressLint("ScheduleExactAlarm")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConfigurationScreen(

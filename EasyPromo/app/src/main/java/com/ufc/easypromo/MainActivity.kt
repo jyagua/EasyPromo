@@ -8,10 +8,12 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.ViewModelProvider
 import com.ufc.easypromo.ui.navigation.AppNavHost
 import com.ufc.easypromo.ui.theme.EasyPromoTheme
 import com.ufc.easypromo.util.NotificationHelper
 import com.ufc.easypromo.viewmodel.MainViewModel
+import com.ufc.easypromo.viewmodel.ProductViewModel
 
 class MainActivity : ComponentActivity() {
     private val mainViewModel: MainViewModel by viewModels()
@@ -27,18 +29,18 @@ class MainActivity : ComponentActivity() {
             requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
 
-        // Schedule repeating alarm for price drop notifications
         NotificationHelper.schedulePriceDropAlarm(this)
-
-        // Check price drops on launch
         mainViewModel.checkPriceDropsAndNotify()
+        val productViewModel = ViewModelProvider(this)[ProductViewModel::class.java]
 
         setContent {
             val darkThemePref = mainViewModel.darkThemeEnabled.collectAsState(initial = true).value
             EasyPromoTheme(darkTheme = darkThemePref) {
+                // Directly call AppNavHost, removing all auth-related parameters
                 AppNavHost(
                     isDarkTheme = darkThemePref,
-                    onThemeChange = { mainViewModel.setDarkThemeEnabled(it) }
+                    onThemeChange = { mainViewModel.setDarkThemeEnabled(it) },
+                    productViewModel = productViewModel
                 )
             }
         }
