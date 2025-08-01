@@ -1,10 +1,13 @@
 package com.ufc.easypromo.ui.navigation
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -13,18 +16,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.google.gson.Gson
 import com.ufc.easypromo.aliexpress.ui.AliExpressScreen
-import com.ufc.easypromo.aliexpress.viewmodel.AliExpressViewModel
 import com.ufc.easypromo.di.AppContainer
-import com.ufc.easypromo.models.Product
 import com.ufc.easypromo.ui.components.BottomNavigationBar
 import com.ufc.easypromo.ui.components.DrawerContent
 import com.ufc.easypromo.ui.components.PromotionSource
@@ -50,10 +50,6 @@ fun AppNavHost(
     val scope = rememberCoroutineScope()
     var selectedSource by remember { mutableStateOf(PromotionSource.Amazon) }
 
-    viewModel(
-        factory = remember { AppContainer().aliExpressViewModelFactory }
-    )
-
     val favoriteProducts by productViewModel.favourites.collectAsState(initial = emptyList())
 
     ModalNavigationDrawer(
@@ -64,8 +60,7 @@ fun AppNavHost(
                 favoriteProducts = favoriteProducts,
                 onProductClick = { product ->
                     scope.launch { drawerState.close() }
-                    val productJson = Gson().toJson(product)
-                    navController.navigate("details/${java.net.URLEncoder.encode(productJson, "UTF-8")}")
+                    navController.navigate("details/${product.id}")
                 },
                 onFavouritesClick = {
                     scope.launch { drawerState.close() }
@@ -112,8 +107,7 @@ fun AppNavHost(
                     HomeScreen(
                         source = selectedSource,
                         onProductClick = { product ->
-                            val productJson = Gson().toJson(product)
-                            navController.navigate("details/${java.net.URLEncoder.encode(productJson, "UTF-8")}")
+                            navController.navigate("details/${product.id}")
                         },
                         productViewModel = productViewModel
                     )
@@ -122,8 +116,7 @@ fun AppNavHost(
                     AliExpressScreen(
                         viewModelFactory = AppContainer().aliExpressViewModelFactory,
                         onProductClick = { product ->
-                            val productJson = Gson().toJson(product)
-                            navController.navigate("details/${java.net.URLEncoder.encode(productJson, "UTF-8")}")
+                            navController.navigate("details/${product.id}")
                         },
                         productViewModel = productViewModel
                     )
@@ -131,8 +124,7 @@ fun AppNavHost(
                 composable("favourites") {
                     FavouritesScreen(
                         onProductClick = { product ->
-                            val productJson = Gson().toJson(product)
-                            navController.navigate("details/${java.net.URLEncoder.encode(productJson, "UTF-8")}")
+                            navController.navigate("details/${product.id}")
                         },
                         onBack = { navController.popBackStack() },
                         productViewModel = productViewModel
@@ -141,29 +133,35 @@ fun AppNavHost(
                 composable("cart") {
                     CartScreen(
                         onProductClick = { product ->
-                            val productJson = Gson().toJson(product)
-                            navController.navigate("details/${java.net.URLEncoder.encode(productJson, "UTF-8")}")
+                            navController.navigate("details/${product.id}")
                         },
                         onBack = { navController.popBackStack() },
                         productViewModel = productViewModel
                     )
                 }
                 composable(
-                    "details/{productJson}",
-                    arguments = listOf(navArgument("productJson") { type = NavType.StringType })
+                    "details/{productId}",
+                    arguments = listOf(navArgument("productId") { type = NavType.StringType })
                 ) { backStackEntry ->
-                    val productJson = backStackEntry.arguments?.getString("productJson")
-                    val product = Gson().fromJson(java.net.URLDecoder.decode(productJson, "UTF-8"), Product::class.java)
-                    if (product != null) {
-                        ProductDetailScreen(
-                            product = product,
-                            onBack = { navController.popBackStack() },
-                            onProductClick = { newProduct ->
-                                val newProductJson = Gson().toJson(newProduct)
-                                navController.navigate("details/${java.net.URLEncoder.encode(newProductJson, "UTF-8")}")
-                            },
-                            productViewModel = productViewModel
-                        )
+                    val productId = backStackEntry.arguments?.getString("productId")?.toLongOrNull()
+                    if (productId != null) {
+                        // Correctly get the product from the central view model
+                        val product = productViewModel.getProductById(productId)
+                        if (product != null) {
+                            ProductDetailScreen(
+                                product = product,
+                                onBack = { navController.popBackStack() },
+                                onProductClick = { newProduct ->
+                                    navController.navigate("details/${newProduct.id}")
+                                },
+                                productViewModel = productViewModel
+                            )
+                        } else {
+                            // Fallback UI in case the product isn't found
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Text("Product not found.")
+                            }
+                        }
                     }
                 }
                 composable("config") {

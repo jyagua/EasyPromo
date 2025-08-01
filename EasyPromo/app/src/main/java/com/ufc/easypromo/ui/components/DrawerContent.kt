@@ -25,7 +25,8 @@ fun DrawerContent(
     onProductClick: (Product) -> Unit,
     onFavouritesClick: () -> Unit,
     onConfigClick: () -> Unit,
-    onHelpClick: () -> Unit
+    onHelpClick: () -> Unit,
+    /*onLoginClick: () -> Unit*/
 ) {
     Surface(
         modifier = Modifier
@@ -93,6 +94,15 @@ fun DrawerContent(
             )
 
             Spacer(modifier = Modifier.weight(1f))
+
+            /*Text(
+                text = "Login / Registrar",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onLoginClick() }
+                    .padding(vertical = 8.dp)
+            )*/
 
             HorizontalDivider()
             Text(
